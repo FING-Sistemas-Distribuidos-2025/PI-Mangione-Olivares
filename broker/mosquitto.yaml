@@ -1,0 +1,58 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto:2.0
+        ports:
+        - containerPort: 1883
+        volumeMounts:
+        - mountPath: /mosquitto/config
+          name: mosquitto-config
+      volumes:
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+
+---
+
+# ConfigMap para configuración de Mosquitto
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+data:
+  mosquitto.conf: |
+    persistence true
+    log_dest stdout
+    listener 1883
+    allow_anonymous true
+
+---
+
+# Service para exponer el broker
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+spec:
+  selector:
+    app: mosquitto
+  ports:
+  - protocol: TCP
+    port: 1883
+    targetPort: 1883
+  type: NodePort  # Cambialo a ClusterIP o LoadBalancer según tu necesidad
+
