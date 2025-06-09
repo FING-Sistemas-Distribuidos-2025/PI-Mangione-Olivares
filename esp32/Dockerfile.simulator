@@ -1,0 +1,12 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install paho-mqtt
+
+# Copy simulator code
+COPY simulator.py .
+
+# Run the ESP32 simulator
+CMD ["python", "simulator.py"]

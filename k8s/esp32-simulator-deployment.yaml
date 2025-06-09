@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esp32-simulators
+  namespace: hydroponics
+  labels:
+    app: esp32-simulator
+    component: iot-nodes
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: esp32-simulator
+  template:
+    metadata:
+      labels:
+        app: esp32-simulator
+    spec:
+      imagePullSecrets:
+      - name: key  
+      containers:
+      - name: esp32-simulator
+        image: agusolivares/esp32simulator:1.0
+        env:
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MQTT_BROKER
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MQTT_BROKER
+        - name: MQTT_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MQTT_PORT
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.exit(0)"
+          initialDelaySeconds: 30
+          periodSeconds: 300
+      restartPolicy: Always
