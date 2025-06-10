@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Sensores</title>
+    <!-- Incluir Chart.js para los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Usando Inter para una mejor estética */
+            margin: 20px;
+            background-color: #f0f2f5; /* Un fondo gris claro */
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #ffffff; /* Fondo blanco para el contenido */
+            padding: 30px;
+            border-radius: 12px; /* Esquinas más redondeadas */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Sombra más pronunciada */
+            transition: all 0.3s ease-in-out; /* Transiciones suaves */
+        }
+        .container:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15); /* Sombra al pasar el ratón */
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50; /* Un azul oscuro elegante */
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Layout responsivo de cuadrícula */
+            gap: 25px; /* Espacio entre gráficos */
+            margin-top: 20px;
+        }
+        .chart-box {
+            background-color: #ecf0f1; /* Un gris azulado claro */
+            padding: 20px;
+            border-radius: 10px; /* Esquinas redondeadas */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08); /* Sombra suave */
+            transition: transform 0.2s ease-in-out;
+        }
+        .chart-box:hover {
+            transform: translateY(-5px); /* Efecto de elevación al pasar el ratón */
+        }
+        .chart-box h2 {
+            text-align: center;
+            color: #34495e; /* Un gris oscuro */
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .stats-container {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: #e8f5e9; /* Un verde claro */
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stats-container h2 {
+            text-align: center;
+            color: #2e7d32; /* Un verde más oscuro */
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: separate; /* Para border-radius en las celdas */
+            border-spacing: 0;
+            margin-top: 15px;
+            background-color: #ffffff;
+            border-radius: 8px; /* Bordes redondeados para la tabla */
+            overflow: hidden; /* Asegura que los bordes redondeados se apliquen correctamente */
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #cfe9ce; /* Borde más suave */
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .stats-table th {
+            background-color: #4caf50; /* Verde vibrante */
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        .stats-table tr:nth-child(even) {
+            background-color: #f9f9f9; /* Rayas para mejor legibilidad */
+        }
+        .stats-table tr:hover {
+            background-color: #e0f7fa; /* Resaltado al pasar el ratón */
+        }
+        /* Responsividad básica */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .charts-container {
+                grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+            }
+            .stats-table th, .stats-table td {
+                padding: 8px 10px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard de Medidas de Sensores</h1>
+
+        <div class="charts-container">
+            <div class="chart-box">
+                <h2>Temperatura (°C)</h2>
+                <canvas id="temperaturaChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h2>Humedad (%)</h2>
+                <canvas id="humedadChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h2>Presión (hPa)</h2>
+                <canvas id="presionChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h2>Consumo de Energía (kWh)</h2>
+                <canvas id="consumoChart"></canvas>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <h2>Estadísticas de Medidas</h2>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Medida</th>
+                        <th>Mínimo</th>
+                        <th>Máximo</th>
+                        <th>Promedio</th>
+                        <th>Desviación Estándar</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body">
+                    <!-- Las estadísticas se cargarán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Función para obtener y mostrar los datos
+        async function fetchDataAndRenderCharts() {
+            try {
+                // Realiza la solicitud al backend (asegúrate de que la URL y el puerto sean correctos)
+                const response = await fetch('http://127.0.0.1:5001/api/data'); // Backend corre en 5001
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                const labels = data.labels;
+                const measures = data.measures;
+                const statistics = data.statistics;
+
+                // Extrae los datos para cada gráfico
+                const temperaturas = measures.map(m => m.temperatura);
+                const humedades = measures.map(m => m.humedad);
+                const presiones = measures.map(m => m.presion);
+                const consumos = measures.map(m => m.consumo_energia);
+
+                // Función auxiliar para crear gráficos
+                function createChart(ctx, label, data, borderColor, backgroundColor) {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: label,
+                                data: data,
+                                borderColor: borderColor,
+                                backgroundColor: backgroundColor,
+                                tension: 0.1, // Suaviza la línea
+                                fill: false // No rellenar el área bajo la línea
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false, // Permite que el gráfico se ajuste al tamaño del contenedor
+                            scales: {
+                                y: {
+                                    beginAtZero: false
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 14
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Renderiza los gráficos en los canvas correspondientes
+                createChart(document.getElementById('temperaturaChart'), 'Temperatura', temperaturas, 'rgb(255, 99, 132)', 'rgba(255, 99, 132, 0.5)');
+                createChart(document.getElementById('humedadChart'), 'Humedad', humedades, 'rgb(54, 162, 235)', 'rgba(54, 162, 235, 0.5)');
+                createChart(document.getElementById('presionChart'), 'Presión', presiones, 'rgb(75, 192, 192)', 'rgba(75, 192, 192, 0.5)');
+                createChart(document.getElementById('consumoChart'), 'Consumo Energía', consumos, 'rgb(153, 102, 255)', 'rgba(153, 102, 255, 0.5)');
+
+                // Rellena la tabla de estadísticas
+                const statsBody = document.getElementById('stats-body');
+                for (const key in statistics) {
+                    if (statistics.hasOwnProperty(key)) {
+                        const stat = statistics[key];
+                        // Formatea el nombre de la medida para la tabla
+                        let measureName = key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        if (measureName === "Consumo Energia") {
+                            measureName = "Consumo de Energía";
+                        }
+
+                        const row = `
+                            <tr>
+                                <td>${measureName}</td>
+                                <td>${stat.min}</td>
+                                <td>${stat.max}</td>
+                                <td>${stat.avg}</td>
+                                <td>${stat.std_dev}</td>
+                            </tr>
+                        `;
+                        statsBody.insertAdjacentHTML('beforeend', row);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+                const container = document.querySelector('.container');
+                container.innerHTML = `
+                    <h1>Error al cargar el dashboard</h1>
+                    <p>No se pudieron obtener los datos del backend. Asegúrate de que el servicio backend está corriendo en <code>http://127.0.0.1:5001</code> y que no hay problemas de CORS o red.</p>
+                    <p>Detalle del error: ${error.message}</p>
+                `;
+                container.style.textAlign = 'center';
+                container.style.color = '#dc3545';
+            }
+        }
+
+        // Llama a la función para cargar los datos cuando la página se cargue
+        document.addEventListener('DOMContentLoaded', fetchDataAndRenderCharts);
+    </script>
+</body>
+</html>
