@@ -52,3 +52,14 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 300
       restartPolicy: Always
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: hydroponics
+data:
+  MQTT_BROKER: "mosquitto-service"
+  MQTT_PORT: "1883"
+
