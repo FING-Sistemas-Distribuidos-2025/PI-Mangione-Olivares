@@ -9,7 +9,7 @@
 
 ## 📋 Descripción del Proyecto y Objetivo a largo plazo
 
-Sistema distribuido de monitoreo y control para hidroponía urbana que integra dispositivos IoT (ESP32), y una interfaz web. La plataforma permite el monitoreo en tiempo real de parámetros de cultivos hidropónicos a través de una arquitectura de microservicios desplegada en Kubernetes. La misma esta desarrollada para ser implementada en la Ciudad de Mendoza con la intencion de poder registrar datos correspondientes a los cultivos, fomentar la utilizacion de huertas comunitarias y evaluar a largo plazo la posibilidad de eliminar islas de calor en zonas urbanas mediante la implementacion del sistema a mayor escala.
+Sistema distribuido de monitoreo y control para hidroponía urbana que integra dispositivos IoT (ESP32), y una interfaz web. La plataforma permite el monitoreo en tiempo real de parámetros de cultivos hidropónicos a través de una arquitectura de microservicios desplegada en Kubernetes. La misma esta desarrollada para ser implementada en un proyecto de Hidroponia Urbana del Fondo de Juventudes y Acción Climatica del Municipio de Ciudad de Mendoza con la intencion de poder construir jardines en terrazas y registrar datos correspondientes a estos cultivos, fomentar la utilizacion de huertas comunitarias y evaluar a largo plazo la posibilidad de reducir las islas de calor en zonas urbanas mediante la implementacion del sistema a mayor escala.
 
 ## 🏗️ Arquitectura del Sistema
 
