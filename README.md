@@ -1,10 +1,15 @@
 # Sistema de Hidroponía Urbana
 
+---
+**Desarrollado por**: Mangione Gabriel & Olivares Agustin  
+**Curso**: Sistemas Distribuidos 2025 - FING  
+---
+
 ![Diagrama de la Arquitectura del proyecto](images/arq_sist.png)
 
 ## 📋 Descripción del Proyecto y Objetivo a largo plazo
 
-Sistema distribuido de monitoreo y control para hidroponía urbana que integra dispositivos IoT (ESP32), y una interfaz web. La plataforma permite el monitoreo en tiempo real de parámetros de cultivos hidropónicos a través de una arquitectura de microservicios desplegada en Kubernetes. La misma esta desarrollada para ser implementada en la ciudad de Mendoza con la intencion de poder registrar datos correspondientes a los cultivos y evaluar a largo plazo la posibilidad de eliminar islas de calor en zonas urbanas mediante la implementacion de este sistema  
+Sistema distribuido de monitoreo y control para hidroponía urbana que integra dispositivos IoT (ESP32), y una interfaz web. La plataforma permite el monitoreo en tiempo real de parámetros de cultivos hidropónicos a través de una arquitectura de microservicios desplegada en Kubernetes. La misma esta desarrollada para ser implementada en la Ciudad de Mendoza con la intencion de poder registrar datos correspondientes a los cultivos, fomentar la utilizacion de huertas comunitarias y evaluar a largo plazo la posibilidad de eliminar islas de calor en zonas urbanas mediante la implementacion del sistema a mayor escala.
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -119,6 +124,7 @@ kubectl get pvc -n hydroponics
 # Obtener la URL del frontend
 minikube service flask-frontend-service -n hydroponics --url
 ```
+[Interfaz Grafica](images/FrontCap.jpeg)
 
 ## 🔧 Comandos Útiles
 
@@ -127,13 +133,14 @@ minikube service flask-frontend-service -n hydroponics --url
 # Ver pods en tiempo real
 watch kubectl get pods -n hydroponics
 ```
+[Estado deseado](images/EstadoDeseado.jpeg)
 
 ### Escalado de Servicios
 ```bash
 # Escalar simuladores ESP32
 kubectl scale deployment esp32-simulators --replicas=5 -n hydroponics
 ```
-
+Nota: al desescalar los nodos es posible que siga mostrando los graficos por pantalla a pesar de que estos ya no esten activos
 ## 🗑️ Limpieza del Sistema
 
 ### Eliminar el Despliegue
@@ -159,8 +166,3 @@ minikube delete
 - MongoDB está configurado como **StatefulSet** para persistencia
 - El broker MQTT soporta tanto protocolo MQTT como WebSockets pero no es aplicado de momento
 - Se utiliza **PersistentVolume** local para almacenamiento en Minikube
-
----
-
-**Desarrollado por**: Mangione Gabriel & Olivares Agustin  
-**Curso**: Sistemas Distribuidos 2025 - FING  
