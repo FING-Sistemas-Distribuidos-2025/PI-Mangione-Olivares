@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reader-api-deployment
+  namespace: hydroponics
+  labels:
+    app: reader-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reader-api
+  template:
+    metadata:
+      labels:
+        app: reader-api
+    spec:
+      containers:
+      - name: reader-api-container
+        image: gmangione/api_reader:latest
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 5001
+        env:
+        # Esta variable de entorno conecta la API con el servicio headless de MongoDB
+        - name: MONGODB_HEADLESS_SERVICE
+          value: "mongodb://mongodb-headless-service:27017/"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reader-api-service
+  namespace: hydroponics
+spec:
+  # ClusterIP hace que el servicio solo sea accesible dentro del clúster
+  type: ClusterIP
+  ports:
+  - port: 5001
+    protocol: TCP
+    targetPort: 5001
+  selector:
+    # Redirige el tráfico a los pods con la etiqueta app: reader-api
+    app: reader-api

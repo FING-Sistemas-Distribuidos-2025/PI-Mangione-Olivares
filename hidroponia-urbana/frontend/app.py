@@ -1,10 +1,17 @@
+import os
+from venv import logger
 from flask import Flask, render_template, jsonify
 import random
 from datetime import datetime, timedelta
 
+import requests
+
 app = Flask(__name__)
 
+# Configuration
+BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://reader-api-service.hydroponics.svc.cluster.local:5001')
 
+'''
 def generate_sample_data():
     data = []
     labels = []
@@ -28,6 +35,7 @@ def generate_sample_data():
             "consumo_energia": consumo_energia
         })
     return labels, data
+'''
 
 def calculate_statistics(data):
     stats = {}
@@ -68,7 +76,7 @@ def calculate_statistics(data):
     return stats
 
 
-chart_labels, sensor_data = generate_sample_data()
+chart_labels, sensor_data = 0,0 
 statistics_data = calculate_statistics(sensor_data)
 
 
@@ -77,7 +85,7 @@ def index():
     """Ruta principal que renderiza la página de inicio."""
     return render_template('index.html', stats=statistics_data, sensor_data_json=sensor_data)
 
-@app.route('/api/data')
+'''
 def get_data():
     """API endpoint para obtener los datos de las medidas y estadísticas."""
     return jsonify({
@@ -85,6 +93,83 @@ def get_data():
         "measures": sensor_data,
         "statistics": statistics_data
     })
+'''
+@app.route('/api/data')
+def get_data():
+    try:
+        # Llama a la API del reader
+        response = requests.get(f"{BACKEND_API_URL}/api/last-values", timeout=5)
+        data = response.json()
+
+        readings = data.get("readings", [])
+
+        # Inicializamos listas
+        chart_labels = []
+        sensor_data = {
+            "temperature": [],
+            "humidity": [],
+            "ph": [],
+            "gas": []
+        }
+
+        # Iteramos sobre cada lectura
+        for reading in readings:
+            ts = reading.get("timestamp")
+            chart_labels.append(ts)
+
+            sensors = reading.get("sensors", {})
+            sensor_data["temperature"].append(sensors.get("temperature"))
+            sensor_data["humidity"].append(sensors.get("humidity"))
+            sensor_data["ph"].append(sensors.get("ph"))
+            sensor_data["gas"].append(sensors.get("gas"))
+
+        return jsonify({
+            "labels": chart_labels,
+            "data": sensor_data
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/history')
+def get_history():
+    try:
+        # Llama a la API del reader
+        response = requests.get(f"{BACKEND_API_URL}/api/history", timeout=5)
+        data = response.json()
+
+        readings = data.get("readings", [])
+
+        # Inicializamos listas 
+        node_id = []
+        chart_labels = []
+        sensor_data = {
+            "temperature": [],
+            "humidity": [],
+            "ph": [],
+            "gas": []
+        }
+
+        # Iteramos sobre cada lectura
+        for reading in readings:
+            node_id.append(reading.get("node_id"))
+            ts = reading.get("timestamp")
+            chart_labels.append(ts)
+
+            sensors = reading.get("sensors", {})
+            sensor_data["temperature"].append(sensors.get("temperature"))
+            sensor_data["humidity"].append(sensors.get("humidity"))
+            sensor_data["ph"].append(sensors.get("ph"))
+            sensor_data["gas"].append(sensors.get("gas"))
+
+        return jsonify({
+            "node_id": node_id,
+            "labels": chart_labels,
+            "data": sensor_data
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

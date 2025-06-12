@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 
+#Seteo app.py como el punto de entrada de la app Flask
 ENV FLASK_APP=app.py
 
 

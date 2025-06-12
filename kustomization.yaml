@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - pvc-files/pv-local.yaml
+  - pvc-files/pvc-local.yaml
+  - k8s/hidroponiau-deployment-minikube.yaml
+  - k8s/esp32-simulator-deployment.yaml
+  - broker/mosquitto.yaml
+  - hidroponia-urbana/backend/minikube/writer_api/writer_deployment.yaml
+  - hidroponia-urbana/backend/minikube/reader_api/reader_deployment.yaml

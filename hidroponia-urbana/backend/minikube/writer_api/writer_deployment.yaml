@@ -1,0 +1,30 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: mqtt-writer-service-deployment  
+  namespace: hydroponics
+  labels:
+    app: mqtt-writer-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-writer-service
+  template:
+    metadata:
+      labels:
+        app: mqtt-writer-service
+    spec:
+      containers:
+      - name: writer-service-container
+        image: agusolivares/mqtt_writer_service:latest
+        imagePullPolicy: "Always"
+        env:
+        - name: MONGODB_HEADLESS_SERVICE
+          value: "mongodb://mongodb-headless-service:27017/"
+        - name: MQTT_BROKER
+          value: "mosquitto-service"
+        - name: MQTT_PORT
+          value: "1883"
+

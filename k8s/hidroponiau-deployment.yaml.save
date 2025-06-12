@@ -1,0 +1,157 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-frontend-deployment
+  namespace: hydroponics
+  labels:
+    app: flask-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-frontend
+  template:
+    metadata:
+      labels:
+        app: flask-frontend
+    spec:
+      containers:
+      - name: flask-app-container
+        image: agusolivares/frontend-app:latest 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-frontend-service
+  namespace: hydroponics
+spec:
+  type: NodePort 
+  ports:
+  - port: 80 
+    protocol: TCP
+    targetPort: 5000 
+    nodePort: 30090 
+  selector:
+    app: flask-frontend
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-backend-deployment
+  namespace: hydroponics
+  labels:
+    app: flask-backend
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: flask-backend
+  template:
+    metadata:
+      labels:
+        app: flask-backend
+    spec:
+      containers:
+      - name: flask-backend-container
+        image: agusolivares/backend-app:latest 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001 
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service 
+  namespace: hydroponics
+spec:
+  type: ClusterIP 
+  ports:
+  - port: 5001 
+    protocol: TCP
+    targetPort: 5001 
+  selector:
+    app: flask-backend
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: hydroponics
+spec:
+  serviceName: "mongodb-headless-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-headless-service
+  namespace: hydroponics
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    app: mongodb
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-con-pvc
+spec:
+  containers:
+    - name: app
+      image: busybox
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - mountPath: "/data"
+          name: local-volume
+  volumes:
+    - name: local-volume
+      persistentVolumeClaim:
+        claimName: local-pvc
