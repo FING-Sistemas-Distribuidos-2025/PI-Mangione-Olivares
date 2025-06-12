@@ -124,7 +124,7 @@ kubectl get pvc -n hydroponics
 # Obtener la URL del frontend
 minikube service flask-frontend-service -n hydroponics --url
 ```
-[Interfaz Grafica](images/FrontCap.jpeg)
+[Interfaz Grafica](images/FrontCap.png)
 
 ## 🔧 Comandos Útiles
 
@@ -133,7 +133,7 @@ minikube service flask-frontend-service -n hydroponics --url
 # Ver pods en tiempo real
 watch kubectl get pods -n hydroponics
 ```
-[Estado deseado](images/EstadoDeseado.jpeg)
+[Estado deseado](images/EstadoDeseado.png)
 
 ### Escalado de Servicios
 ```bash
